@@ -1,8 +1,8 @@
 #!/bin/bash
-# Adult Dataset - Neural Network with Solver Projection
+# Adult Dataset - Neural Network with Best-in-Dataset Projection
 # This script generate 1 counterfactual using DiCE and projects it 
 # using the closest tuple from the dataset.
-echo "Adult projection solver experiment starts!"
+echo "Adult projection best in dataset experiment starts!"
 python -u projection_test.py \
     --cont_feat age education_num hours_per_week \
     --fixed_feat age race sex \
@@ -10,10 +10,10 @@ python -u projection_test.py \
     --constraints_path data/constraints/adult_dcs.txt \
     --k_lower 1 \
     --k_upper 2 \
-    --exp_name adult_project_solver \
+    --exp_name adult_project_best_in_dataset \
     --timeout 50000 \
-    --projection_mode solver \
-    > logs/adult_project_solver.out
+    --projection_mode best_in_dataset \
+    > logs/adult_project_best_in_dataset.out
 # Parameters explained:
 # --cont_feat: Continuous features (age, education_num, hours_per_week)
 # --fixed_feat: Immutable features that cannot change (age, race, sex)
@@ -25,6 +25,6 @@ python -u projection_test.py \
 # --num_samples: Number of test instances to generate CFs for
 # --epochs: Training epochs for neural network (omit if --load_model)
 
-echo "Adult projection solver experiment complete!"
-echo "Results saved to: data/adult_project_solver/"
-echo "Check logs/adult_project_solver.out for detailed output"
+echo "Adult projection best in dataset experiment complete!"
+echo "Results saved to: data/adult_project_best_in_dataset/"
+echo "Check logs/adult_project_best_in_dataset.out for detailed output"
