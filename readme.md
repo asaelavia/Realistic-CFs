@@ -39,21 +39,27 @@ As a use case of tuple projection, we demonstrate how to generate **constraint-a
 
 ## Installation
 
+### Using Conda (Recommended - Tested Configuration)
+```bash
+# 1. Create conda environment with Python 3.8.5
+conda create -n projection python=3.8.5
+
+# 2. Activate environment
+conda activate projection
+
+# 3. Upgrade pip
+pip install --upgrade pip
+
+# 4. Install dependencies
+pip install -r requirements.txt
+```
+
+### Using Python Virtual Environment (Alternative - Not Fully Tested)
+
+If you prefer to use venv instead of conda:
 ```bash
 # 1. Ensure Python 3.8+ is installed
-python --version  # or python3 --version
-
-# =====================================================
-# Note:
-# This repository has been tested on:
-# - Python 3.8.5 with the dependency versions listed below
-# - Python 3.11 with:
-#     numpy==1.23.3
-#     scikit_learn==1.2.0
-# Versions above 3.8 are expected to work,
-# but full compatibility is not guaranteed
-# due to dependency differences.
-# =====================================================
+python --version
 
 # 2. Create virtual environment
 python -m venv venv
@@ -64,19 +70,21 @@ source venv/bin/activate
 # Windows:
 venv\Scripts\activate
 
-# 4. Upgrade pip (important!)
+# 4. Upgrade pip
 pip install --upgrade pip
 
 # 5. Install dependencies
 pip install -r requirements.txt
 ```
 
+**Note:** This repository has been tested with conda and Python 3.8.5 using the dependency versions listed in `requirements.txt`. While Python 3.11 with updated dependencies (numpy==1.23.3, scikit_learn==1.2.0) is expected to work, full compatibility is not guaranteed.
+
 ### Requirements
 
 ```
 ipython==8.12.3
 jsonschema==3.2.0
-numpy==1.19.2
+numpy==1.22.0
 pandas==1.3.5
 raiutils==0.4.1
 scikit_learn==0.23.2
@@ -84,7 +92,6 @@ tensorflow==2.13.0
 torch==2.0.1
 tqdm==4.50.2
 z3_solver==4.13.0.0
-
 ```
 
 ## Repository Structure
