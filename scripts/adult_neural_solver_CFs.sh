@@ -3,6 +3,7 @@
 # This script generates k=5 counterfactuals using a neural network classifier
 # and projects them using the SMT solver approach to satisfy denial constraints.
 echo "Adult projection neural network solver experiment starts!"
+echo "Check logs/adult_neural_solver_CFs.out for detailed output"
 python -u perturb_test.py \
     --cont_feat age education_num hours_per_week \
     --fixed_feat age race sex \

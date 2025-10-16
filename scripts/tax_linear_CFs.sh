@@ -1,6 +1,7 @@
 #!/bin/bash
 # Tax Dataset - Linear Model CFS With Integrated Model
 echo "Tax pertrub linear model CFs experiment starts!"
+echo "Check logs/tax_linear_CFs.out for detailed output"
 python -u perturb_test.py \
     --fixed_feat Genderstr \
     --cont_feat Salaryint SingleExempint MarriedExempint ChildExempint \

@@ -1,6 +1,7 @@
 #!/bin/bash
 # Adult Dataset - Neural Network CFs with Solver Projection - Solver Per Sample
 echo "Adult neural network solver experiment starts!"
+echo "Check logs/adult_neural_solver_per_sample_CFS.out for detailed output"
 python -u perturb_test.py \
     --cont_feat age education_num hours_per_week \
     --fixed_feat age race sex \

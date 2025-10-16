@@ -3,6 +3,7 @@
 # This script generate 1 counterfactual using DiCE and projects it 
 # using the closest tuple from the dataset.
 echo "Adult projection best in dataset experiment starts!"
+echo "Check logs/adult_project_best_in_dataset.out for detailed output"
 python -u projection_test.py \
     --cont_feat age education_num hours_per_week \
     --fixed_feat age race sex \

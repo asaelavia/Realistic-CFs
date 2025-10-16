@@ -3,6 +3,7 @@
 # This script generate 1 counterfactual using DiCE and projects it 
 # using on exhaustive search on whole domain of the data.
 echo "NY projection exhaustive experiment starts!"
+echo "Check logs/adult_project_best_in_dataset.out for detailed output"
 python -u projection_test.py \
     --cont_feat beds bath propertysqft \
     --fixed_feat type locality sublocality \
