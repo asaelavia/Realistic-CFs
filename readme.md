@@ -382,6 +382,4 @@ python perturb_test.py --solver_timeout 50000 ...  # 50 seconds
 
 <!-- [Your License Here] -->
 
-## Contact
-
-For questions or issues, please open a GitHub issue or contact [asaelavia@gmail.com].
+## Contact (TODO)
