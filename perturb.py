@@ -44,7 +44,7 @@ def parse_arguments():
     parser.add_argument('--epochs', type=int, default=10, help='Epochs to train model')
     parser.add_argument('--exp_name', type=str, default='adult_test', help='Name of the dataset')
     parser.add_argument('--mode', type=str, default='hard', help='Soft or Hard projection')
-    parser.add_argument('--gamma', type=float, default=0, help='Diversity constraint parameter')
+    parser.add_argument('--gamma', type=float, default=2, help='Diversity constraint parameter')
     parser.add_argument('--delta', type=float, default=50, help='Proximity weight parameter')
     parser.add_argument('--timeout', type=int, default=1000, help='Timeout for projection function in seconds')
     parser.add_argument('--solver_timeout', type=int, default=10000, help='Timeout for projection function in seconds')
