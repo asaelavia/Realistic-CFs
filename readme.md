@@ -1,40 +1,40 @@
-# Tuple Projection Over Denial Constraints
+# Realistic Counterfactual Explanations via Denial Constraints
 
-This repository contains the implementation for tuple projection over denial constraints using SMT solvers, as described in our paper. The repository includes both the core projection algorithms and an application to counterfactual explanation generation.
+This repository contains the implementation for generating realistic counterfactual explanations that adhere to Denial Constraints (DCs), as described in our paper. The core technique is a **perturb-and-project** framework that combines existing CF generation methods with SMT-solver-based projection onto the constraint-satisfying space.
 
 ## Overview
 
-### Core Method: Tuple Projection
+### Counterfactual Explanations with Denial Constraints
 
-The fundamental technique in this repository is **tuple projection** - projecting infeasible database tuples onto the constraint-satisfying manifold defined by denial constraints. Given a tuple that violates one or more denial constraints, projection finds the nearest valid tuple that satisfies all constraints.
+Given a classifier and an input instance, **counterfactual explanations (CFs)** identify minimal changes that flip the model's prediction, revealing influential features. However, existing CF methods often produce unrealistic explanations that violate domain constraints. Our approach ensures that generated CFs satisfy **Denial Constraints** — expressive logical constraints capturing data integrity rules.
 
 **Key aspects:**
-- Projects infeasible instances onto constraint-satisfying manifold
-- Handles both unary and binary denial constraints
-- Supports multiple projection algorithms (solver-based, exhaustive, best-in-dataset)
+- Generates diverse, proximate, and realistic counterfactual explanations
+- Ensures all CFs satisfy denial constraints with respect to the database
+- Supports both unary and binary denial constraints
+- Handles immutable attributes that cannot be modified
 
-### Application: Counterfactual Explanations
+### Two Approaches for CF Generation
 
-As a use case of tuple projection, we demonstrate how to generate **constraint-aware counterfactual explanations** for machine learning models. This application uses projection to ensure that generated counterfactuals satisfy domain constraints.
+- **Perturb-and-Project (P&P)**: Generate CFs with existing methods (e.g., DiCE), then project them onto the constraint-satisfying space. Works with any black-box model (neural networks).
+- **Linear Integrated**: Directly encode both classifier and constraints into the solver. Superior quality for linear classifiers (SVM).
 
-**Two approaches:**
-- **Perturb-and-Project (P&P)**: Generate counterfactuals with existing methods, then project them
-- **Linear Integrated**: Directly encode both classifier and constraints into the solver
+### Core Subroutine: Tuple Projection
 
-**Relationship to Projection:** Counterfactual generation uses projection as a subroutine. The P&P approach explicitly projects generated counterfactuals, while the linear integrated approach implicitly performs projection by encoding constraints directly in the solver.
+The projection step finds the nearest valid tuple that satisfies all denial constraints. This is the key subroutine enabling realism in CF generation.
 
-## Key Features
-
-### Projection Methods
+**Projection methods:**
 - **Single Solver (Preprocessing)**: Fastest per-instance runtime after preprocessing
 - **Suspect Set (No Preprocessing)**: Zero upfront cost, filters constraint space on-the-fly
 - **Exhaustive Search**: Baseline for small datasets
 - **Best-in-Dataset**: Selects closest valid tuple from dataset
 
-### Counterfactual Generation
-- **Perturb-and-Project**: Works with any black-box model (neural networks)
-- **Linear Integrated**: Superior quality for linear classifiers (SVM)
-- **Diversity Optimization**: Generates diverse sets of counterfactuals
+## Key Features
+
+- **Realistic CFs**: Zero constraint violations across all generated counterfactuals
+- **Comparable Quality**: Proximity and diversity within ~10% and ~3% of unconstrained baselines on most datasets
+- **Solver Optimizations**: Up to 63× speedup over vanilla solver usage via preprocessing and suspect-set filtering
+- **Diversity Optimization**: Explicit diversity constraints to avoid redundant projections
 - **Comprehensive Metrics**: Proximity (MAD, L0, L1), diversity (DPP, pairwise, minimum), constraint violations
 
 ## Installation
@@ -117,25 +117,9 @@ z3_solver==4.13.0.0
 
 ## Quick Start
 
-### 1. Projection Only
+### 1. Counterfactual Generation (Main Use Case)
 
-Test projection algorithms without CF generation:
-
-```bash
-python projection_test.py \
-    --cont_feat age education_num hours_per_week \
-    --fixed_feat age race sex \
-    --dataset_path data/datasets/adult.csv \
-    --constraints_path data/constraints/adult_dcs.txt \
-    --k_lower 1 --k_upper 2 \
-    --num_samples 10 \
-    --exp_name adult_projection_test \
-    --projection_mode solver
-```
-
-### 2. Counterfactual Generation
-
-Generate constraint-aware counterfactuals:
+Generate realistic counterfactuals for neural network models:
 
 ```bash
 python perturb_test.py \
@@ -149,7 +133,7 @@ python perturb_test.py \
     --solver_timeout 10000
 ```
 
-### 3. Linear Model Integrated Counterfactuals Approach
+### 2. Linear Model Integrated Approach
 
 For linear models with integrated constraint handling:
 
@@ -163,6 +147,22 @@ python perturb_test.py \
     --linear_model \
     --exp_name adult_linear_integrated \
     --solver_timeout 50000
+```
+
+### 3. Projection Only
+
+Test projection algorithms in isolation (without CF generation):
+
+```bash
+python projection_test.py \
+    --cont_feat age education_num hours_per_week \
+    --fixed_feat age race sex \
+    --dataset_path data/datasets/adult.csv \
+    --constraints_path data/constraints/adult_dcs.txt \
+    --k_lower 1 --k_upper 2 \
+    --num_samples 10 \
+    --exp_name adult_projection_test \
+    --projection_mode solver
 ```
 
 ## Parameter Reference
@@ -196,8 +196,15 @@ python perturb_test.py \
 |-----------|------|-------------|---------|
 | `--solver_timeout` | int | Solver timeout in milliseconds | `10000` |
 | `--timeout` | int | Projection timeout in seconds | `1000` |
+| `--distance` | str | Distance function for projection optimization | `MAD` |
+| `--gamma` | float | Diversity constraint parameter (min mutable attributes differing by >1 MAD from previous projections) | `2` |
 | `--delta` | float | Diversity weight parameter | `0.5` |
 | `--fixed_flag` | flag | Reset solver cache between projections | `False` |
+
+**Distance function options (`--distance`):**
+- `MAD`: MAD-normalized distance (default, as used in the paper)
+- `L0`: Number of changed attributes
+- `Custom`: User-defined distance function
 
 ### Projection Mode
 
@@ -246,32 +253,32 @@ See the `scripts/` directory for complete example scripts for each dataset:
 ### Adult-Income Dataset
 
 ```bash
-# Neural network with solver projection
-bash scripts/adult_projection_solver.sh
-
 # Neural network Perturb and Project
 bash scripts/adult_neural_solver_CFs.sh
 
 # Neural network Perturb and Project solver per sample
 bash scripts/adult_neural_solver_per_sample_CFs.sh
+
+# Projection only with solver
+bash scripts/adult_projection_solver.sh
 ```
 
-### NY-Housing Dataset(Small Dataset)
+### NY-Housing Dataset (Small Dataset)
 
 ```bash
-# Domain exhaustive search projection
-bash scripts/ny_projection_exhaustive.sh
-
 # Linear model counterfactuals with model integrated
 bash scripts/ny_linear_model_CFs.sh
+
+# Domain exhaustive search projection
+bash scripts/ny_projection_exhaustive.sh
 ```
 
-### Census-Income Dataset(Large Dataset)
+### Census-Income Dataset (Large Dataset)
 
 ```bash
-# Large-scale experiments (7M+ assertions)
 # Linear model counterfactuals with model integrated
 bash scripts/census_linear_CFs.sh
+
 # Linear model counterfactuals with model integrated, solver per sample
 bash scripts/census_linear_CFs_solver_per_sample.sh
 ```
@@ -279,9 +286,9 @@ bash scripts/census_linear_CFs_solver_per_sample.sh
 ### Tax Dataset
 
 ```bash
-# Synthetic dataset experiments
 # Linear model counterfactuals with model integrated
 bash scripts/tax_linear_CFs.sh
+
 # Linear model counterfactuals perturb and project
 bash scripts/tax_linear_perturb_and_project_CFs.sh
 ```
@@ -296,7 +303,6 @@ Results are saved in `data/{exp_name}/`:
 - `commandline_args.txt` - Command-line arguments used
 - `ml_model_state_dict.pth` - Trained neural model weights
 - `linear_model.pkl` - Trained SVM model
-
 
 ### Metrics Computed
 
@@ -315,34 +321,21 @@ Results are saved in `data/{exp_name}/`:
 - Unary constraint violations
 - Tuple conflicts (binary constraints)
 
-## Projection Algorithm Variants 
+## Algorithm Variants
 
-### 1. Single Solver (Preprocessing)
+### CF Generation
 
-- **Use when:** Multiple projections needed, can amortize preprocessing cost
-- **Advantages:** Fastest per-instance runtime after preprocessing
-- **Set:** Default mode, preprocessing happens automatically
+| Variant | Use When | Advantages | How to Set |
+|---------|----------|------------|------------|
+| Perturb-and-Project | Neural networks | Works with any black-box model | Default (omit `--linear_model`) |
+| Linear Integrated | Linear classifiers (SVM) | Superior quality, joint optimization | Add `--linear_model` flag |
 
-### 2. Suspect Set (No Preprocessing)
+### Projection Optimizations
 
-- **Use when:** Few projections needed, want zero upfront cost
-- **Advantages:** No preprocessing required, filters constraint space
-- **Set:** Use same code, filtering happens automatically based on fixed features
-
-## Counterfactuals Algorithm Variants 
-
-### 1. Linear Integrated
-
-- **Use when:** Using linear classifiers (SVM)
-- **Advantages:** Superior quality, joint optimization
-- **Set:** Add `--linear_model` flag
-
-### 2. Perturb-and-Project (P&P)
-
-- **Use when:** Using neural networks
-- **Advantages:** Works with any black-box mode(here just for neural).
-- **Set:** Default for neural networks (omit `--linear_model`)
-
+| Variant | Use When | Advantages | How to Set |
+|---------|----------|------------|------------|
+| Single Solver (Preprocessing) | Multiple projections, can amortize cost | Fastest per-instance after preprocessing | Default mode |
+| Suspect Set (No Preprocessing) | Few projections, zero upfront cost | Filters constraint space automatically | Filtering based on `--fixed_feat` |
 
 ## Troubleshooting
 
@@ -363,15 +356,13 @@ Increase solver timeout for complex constraint spaces:
 python perturb_test.py --solver_timeout 50000 ...  # 50 seconds
 ```
 
-
 ## Citation (TODO)
 
 <!-- If you use this code, please cite our paper:
 
 ```bibtex
-
 @inproceedings{yourpaper2026,
-  title={# Tuple Projection Over Denial Constraints},
+  title={Realistic Counterfactual Explanations via Denial Constraints},
   author={Your Name and Coauthors},
   booktitle={Conference Name},
   year={2026}
