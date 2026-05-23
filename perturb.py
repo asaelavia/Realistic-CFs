@@ -16,7 +16,7 @@ import torch
 import itertools
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
-from z3 import *
+from z3.z3 import *
 from eval import *
 from solver_distance import build_distance_for_solver, calculate_custom_distance
 
@@ -32,15 +32,15 @@ _solver_cache = {}
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Counterfactual generation with configurable parameters')
-    parser.add_argument('--fixed_feat', nargs='+', default=[], help='Fixed features')
+    parser.add_argument('--fixed_feat', nargs='+', default=['age','race','sex'], help='Fixed features')
     parser.add_argument('--cont_feat', nargs='+', default=['age', 'education_num', 'hours_per_week'],
                         help='Continuous features')
-    parser.add_argument('--dataset_path', type=str, default='data/adult_clean.csv', help='Path to dataset file')
-    parser.add_argument('--constraints_path', type=str, default='data/adult_good_adcs_test.txt',
+    parser.add_argument('--dataset_path', type=str, default='data/datasets/adult.csv', help='Path to dataset file')
+    parser.add_argument('--constraints_path', type=str, default='data/constraints/adult_dcs.txt',
                         help='Path to constraints file')
-    parser.add_argument('--num_samples', type=int, default=11, help='Number of samples to generate counterfactuals for')
-    parser.add_argument('--k_lower', type=int, default=3, help='Lower range of number of counterfactuals to generate')
-    parser.add_argument('--k_upper', type=int, default=4, help='Upper range of number of counterfactuals to generate')
+    parser.add_argument('--num_samples', type=int, default=2, help='Number of samples to generate counterfactuals for')
+    parser.add_argument('--k_lower', type=int, default=5, help='Lower range of number of counterfactuals to generate')
+    parser.add_argument('--k_upper', type=int, default=6, help='Upper range of number of counterfactuals to generate')
     parser.add_argument('--epochs', type=int, default=10, help='Epochs to train model')
     parser.add_argument('--exp_name', type=str, default='adult_test', help='Name of the dataset')
     parser.add_argument('--mode', type=str, default='hard', help='Soft or Hard projection')

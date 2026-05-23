@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 import torch
+from scipy.stats import wilcoxon
 from dice_ml.utils.helpers import DataTransfomer
 from torch.utils.data import TensorDataset, DataLoader
 from class_models import Mlp, pretrain
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     model = Mlp(DF_train.shape[1], [100, 1])
     model.train()
 
-    train_loader = DataLoader(TensorDataset(torch.Tensor(X_train.values), torch.Tensor(y_train.values.astype('int'))),
+    train_loader = DataLoader(TensorDataset(torch.Tensor(X_train.values.astype(float)), torch.Tensor(y_train.values.astype(float))),
                               64, shuffle=True)
     print('Train started')
     if args.load_model:
@@ -122,8 +123,9 @@ if __name__ == '__main__':
 
     m = dice_ml.Model(model=model, backend='PYT', func="ohe-min-max")
     exp_random = dice_ml.Dice(d, m, method="gradient", constraints=False)
-    model_labels = model(torch.Tensor(transformer.transform(x_test).values)).round().detach().numpy()
+    model_labels = model(torch.Tensor(transformer.transform(x_test).values.astype(float))).round().detach().numpy().flatten()
     x_test = x_test[model_labels == 0]
+    x_test_int = x_test_int[model_labels == 0]
     features_to_vary = list(df.columns)
     for feat in args.fixed_feat + ['label']:
         features_to_vary.remove(feat)
@@ -467,3 +469,20 @@ if __name__ == '__main__':
             print(f'{mode} STD Rows: {np.std([metric[3] for metric in perturb_metrics[mode]])}')
             print(f'{mode} Mean Cons: {np.mean([metric[4] for metric in perturb_metrics[mode]])}')
             print(f'{mode} STD Cons: {np.std([metric[4] for metric in perturb_metrics[mode]])}')
+
+    metric_names = ['MAD Distance', 'DPP', 'Uncons', 'Rows', 'Cons', 'L0', 'L1', 'Pairwise Div', 'Min Dist Div']
+    pairs = [('solver_pandp', 'dice'), ('solver_pandp', 'dice_linear'), ('solver_linear', 'dice_linear')]
+    print('\n--- Wilcoxon Signed-Rank Tests ---')
+    for m1, m2 in pairs:
+        if not perturb_metrics[m1] or not perturb_metrics[m2]:
+            continue
+        n = min(len(perturb_metrics[m1]), len(perturb_metrics[m2]))
+        print(f'\n{m1} vs {m2} (n={n}):')
+        for idx, name in enumerate(metric_names):
+            a = [x[idx] for x in perturb_metrics[m1][:n]]
+            b = [x[idx] for x in perturb_metrics[m2][:n]]
+            if len(set(np.array(a) - np.array(b))) <= 1:
+                print(f'  {name}: skipped (all differences identical)')
+                continue
+            stat, p = wilcoxon(a, b)
+            print(f'  {name}: stat={stat:.4f}, p={p:.4f}')

@@ -297,7 +297,8 @@ class DataTransfomer:
             self.data_transformer = FunctionTransformer(func=self.func, kw_args=self.kw_args, validate=False)
 
     def transform(self, data):
-        return self.data_transformer.transform(data)  # should return a numpy array
+        result = self.data_transformer.transform(data)
+        return result.astype(float) if hasattr(result, 'astype') else result
 
     def inverse_transform(self, data):
         return self.data_transformer.inverse_transform(data)  # should return a numpy array
